@@ -3,6 +3,7 @@ package io.cucumber.teamcityformatter;
 import io.cucumber.messages.NdjsonToMessageIterable;
 import io.cucumber.messages.types.Envelope;
 import io.cucumber.teamcityformatter.MessagesToTeamCityWriter.Builder;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,13 +16,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.cucumber.teamcityformatter.Jackson.OBJECT_MAPPER;
+import static io.cucumber.teamcityformatter.MessageOrderer.originalOrder;
+import static io.cucumber.teamcityformatter.MessageOrderer.simulateParallelExecution;
+import static io.cucumber.teamcityformatter.MessagesToTeamCityWriter.TeamCityFeature.PRINT_TEST_CASES_AFTER_TEST_RUN;
 import static java.nio.file.Files.readAllBytes;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class MessagesToTeamCityWriterAcceptanceTest {
     private static final NdjsonToMessageIterable.Deserializer deserializer = (json) -> OBJECT_MAPPER.readValue(json, Envelope.class);
@@ -43,23 +50,55 @@ class MessagesToTeamCityWriterAcceptanceTest {
         }
     }
 
-    private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, Builder builder) throws IOException {
+
+    private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
+        List<Envelope> messages = new ArrayList<>();
         try (InputStream in = Files.newInputStream(testCase.source)) {
             try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, deserializer)) {
-                try (MessagesToTeamCityWriter writer = builder.build(out)) {
-                    for (Envelope envelope : envelopes) {
-                        writer.write(envelope);
-                    }
-                }
+                envelopes.forEach(messages::add);
+            }
+        }
+        orderer.accept(messages);
+
+        try (MessagesToTeamCityWriter writer = builder.build(out)) {
+            for (Envelope envelope : messages) {
+                writer.write(envelope);
             }
         }
         return out;
     }
 
+
     @ParameterizedTest
     @MethodSource("acceptance")
     void test(TestCase testCase) throws IOException {
-        ByteArrayOutputStream bytes = writePrettyReport(testCase, new ByteArrayOutputStream(), testCase.builder);
+        ByteArrayOutputStream bytes = writePrettyReport(testCase, new ByteArrayOutputStream(), testCase.builder, originalOrder());
+        assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
+    }
+    
+    private final List<String> exceptions = Arrays.asList(
+            // TODO: Create issue to support global hooks in output
+            "global-hooks-attachments", 
+            "retry", 
+            "multiple-features-reversed"
+    );
+    
+    @ParameterizedTest
+    @MethodSource("acceptance")
+    void testPrintAfterTestRun(TestCase testCase) throws IOException {
+        assumeFalse(() -> exceptions.contains(testCase.name));
+
+        Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
+        ByteArrayOutputStream bytes = writePrettyReport(testCase, new ByteArrayOutputStream(), builder, originalOrder());
+        assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("acceptance")
+    void testPrintAfterTestRunWithSimulatedParallelExecution(TestCase testCase) throws IOException {
+        assumeFalse(() -> exceptions.contains(testCase.name));
+        Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
+        ByteArrayOutputStream bytes = writePrettyReport(testCase, new ByteArrayOutputStream(), builder, simulateParallelExecution());
         assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
     }
 
@@ -68,7 +107,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
     @Disabled
     void updateExpectedPrettyFiles(TestCase testCase) throws IOException {
         try (OutputStream out = Files.newOutputStream(testCase.expected)) {
-            writePrettyReport(testCase, out, testCase.builder);
+            writePrettyReport(testCase, out, testCase.builder, originalOrder());
         }
     }
 
