@@ -192,6 +192,8 @@ final class TeamCityWriter implements AutoCloseable {
     private void storeStepAttachments(Attachment event) {
         Optional<String> testStepId = event.getTestStepId();
         if (testStepId.isPresent()) {
+            // Store a more minimal version of the attachment.
+            // Avoid holding on to large attachments needlessly 
             attachmentMessagesByStepId.compute(testStepId.get(), updateList(extractAttachmentMessage(event)));
         } else {
             handleAttachment(event);

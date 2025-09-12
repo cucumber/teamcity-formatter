@@ -1,8 +1,34 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.cucumber/teamcity-formatter.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:io.cucumber%20AND%20a:teamcity-formatter)
 
-⚠️ This is an internal package; you don't need to install it in order to use the TeamCity Formatter.
+⚠️ This is an internal package; you don't need to install it in order to use the
+TeamCity Formatter.
 
 TeamCity Formatter
-===================
+==================
 
-Interspaces Cucumbers output with TeamCity Service Messages.
+Interspaces Cucumbers output
+with [TeamCity Service Messages](https://www.jetbrains.com/help/teamcity/service-messages.html).
+This enables IntelliJ IDEA to render all Cucumber scenarios in a tree-diagram.
+
+## Features and Limitations
+
+### Print expected and actual values
+
+For supported framework the output include the expected and actual value of an assertion.
+
+| Framework  | Assertion produced by             |
+|------------|-----------------------------------| 
+| Hamcrest 2 | `MatcherAssert.assertThat`        |
+| AssertJ 3  | `ShouldBeEqual.smartErrorMessage` |
+| JUnit 5    | `AssertionFailureBuilder`         |
+| JUnit 4    | `Assert.assertEquals`             |
+| TestNG 7   | `Assert.assertEquals`             |
+
+### Parallel execution
+
+The Service Message format does not support parallel execution. As a workaround,
+the formatter supports writing the messages for the entire test execution after
+the test execution has completed.
+
+Messages will be written in canonical order i.e. features will be listed in
+lexical uri order, scenarios from top to bottom. 
