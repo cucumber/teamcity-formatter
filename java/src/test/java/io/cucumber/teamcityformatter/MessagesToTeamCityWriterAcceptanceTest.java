@@ -3,7 +3,6 @@ package io.cucumber.teamcityformatter;
 import io.cucumber.messages.NdjsonToMessageIterable;
 import io.cucumber.messages.types.Envelope;
 import io.cucumber.teamcityformatter.MessagesToTeamCityWriter.Builder;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
