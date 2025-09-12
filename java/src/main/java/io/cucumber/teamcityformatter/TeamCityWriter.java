@@ -9,7 +9,6 @@ import io.cucumber.messages.types.Location;
 import io.cucumber.messages.types.Pickle;
 import io.cucumber.messages.types.PickleStep;
 import io.cucumber.messages.types.Snippet;
-import io.cucumber.messages.types.SourceReference;
 import io.cucumber.messages.types.Suggestion;
 import io.cucumber.messages.types.TestCaseFinished;
 import io.cucumber.messages.types.TestCaseStarted;
@@ -99,7 +98,7 @@ final class TeamCityWriter implements AutoCloseable {
     // Only used when executing concurrently.
     private final Map<String, List<String>> attachmentMessagesByStepId = new HashMap<>();
     private List<TreeNode> currentPath = new ArrayList<>();
-    
+
     private final TeamCityCommandWriter out;
     private final Query query;
 
@@ -359,10 +358,15 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private static String formatHookStepName(Hook hook) {
-        String hookName = hook.getName().orElseGet(() -> getHookType(hook));
-        return formatMethodName(hook.getSourceReference())
-                .map(methodName -> String.format("%s(%s)", hookName, methodName))
-                .orElse(hookName);
+        String hookType = getHookType(hook);
+        String name = hook.getName()
+                .map(hookName -> "(" + hookName + ")")
+                .orElseGet(() -> formatMethodName(hook.getSourceReference())
+                        .map(methodName -> "(" + methodName + ")")
+                        .orElse("")
+                );
+
+        return String.format("%s%s", hookType, name);
     }
 
     private static String getHookType(Hook hook) {
