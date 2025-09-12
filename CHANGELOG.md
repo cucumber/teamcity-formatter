@@ -8,4 +8,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-[Unreleased]: https://github.com/cucumber/teamcity-formatter/compare/438ec1f6218a849eb2a684982e2ff7e304a3155f...HEAD
+[Unreleased]: https://github.com/cucumber/teamcity-formatter/compare/e44f4048cb715a3d812a7fdb09cf4748e464a33c...HEAD
