@@ -19,13 +19,13 @@ This enables IntelliJ IDEA to render all Cucumber scenarios in a tree-diagram.
 
 For supported framework the output include the expected and actual value of an assertion.
 
-| Framework  | Assertion produced by             |
-|------------|-----------------------------------| 
-| Hamcrest 2 | `MatcherAssert.assertThat`        |
-| AssertJ 3  | `ShouldBeEqual.smartErrorMessage` |
-| JUnit 5    | `AssertionFailureBuilder`         |
-| JUnit 4    | `Assert.assertEquals`             |
-| TestNG 7   | `Assert.assertEquals`             |
+| Framework  | AssertionError produced by                |
+|------------|-------------------------------------------| 
+| Hamcrest 3 | `MatcherAssert.assertThat(*, equalTo(*))` |
+| AssertJ 3  | `Assertions.assertThat(*).isEqualTo(*)`   |
+| JUnit 5    | `Assertions.assertEquals`                 |
+| JUnit 4    | `Assert.assertEquals`                     |
+| TestNG 7   | `Assert.assertEquals`                     |
 
 
 ### Parallel execution

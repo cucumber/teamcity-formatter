@@ -335,16 +335,16 @@ final class TeamCityWriter implements AutoCloseable {
         query.findTestStepBy(event).ifPresent(testStep -> {
             String name = formatTestStepName(testStep);
 
-            Optional<io.cucumber.messages.types.Exception> error = testStepResult.getException();
+            Optional<Exception> error = testStepResult.getException();
             TestStepResultStatus status = testStepResult.getStatus();
             switch (status) {
                 case SKIPPED: {
-                    String message = error.flatMap(io.cucumber.messages.types.Exception::getMessage).orElse("Step skipped");
+                    String message = error.flatMap(Exception::getMessage).orElse("Step skipped");
                     out.print(TEMPLATE_TEST_IGNORED, timeStamp, duration, message, name);
                     break;
                 }
                 case PENDING: {
-                    String details = error.flatMap(io.cucumber.messages.types.Exception::getMessage).orElse("");
+                    String details = error.flatMap(Exception::getMessage).orElse("");
                     out.print(TEMPLATE_TEST_FAILED, timeStamp, duration, "Step pending", details, name);
                     break;
                 }
@@ -355,8 +355,8 @@ final class TeamCityWriter implements AutoCloseable {
                 }
                 case AMBIGUOUS:
                 case FAILED: {
-                    String details = error.flatMap(io.cucumber.messages.types.Exception::getStackTrace).orElse("");
-                    String message = error.flatMap(io.cucumber.messages.types.Exception::getMessage).orElse(null);
+                    String details = error.flatMap(Exception::getStackTrace).orElse("");
+                    String message = error.flatMap(Exception::getMessage).orElse(null);
                     if (message == null) {
                         out.print(TEMPLATE_TEST_FAILED, timeStamp, duration, "Step failed", details, name);
                         break;
@@ -489,7 +489,7 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private void printBeforeAfterAllResult(TestRunFinished event, String timestamp) {
-        Optional<io.cucumber.messages.types.Exception> error = event.getException();
+        Optional<Exception> error = event.getException();
         if (!error.isPresent()) {
             return;
         }

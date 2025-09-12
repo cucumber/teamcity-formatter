@@ -21,7 +21,7 @@ final class ComparisonFailure {
             Pattern.compile("expected:\\s?<(.*)> but was:\\s?<(.*)>$",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE),
             // TestNG 7 Assert.assertEquals
-            Pattern.compile("expected \\[(.*)] but found \\[(.*)]\n$",
+            Pattern.compile("expected \\[(.*)] but found \\[(.*)]$",
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE),
     };
 
