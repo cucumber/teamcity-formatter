@@ -42,7 +42,6 @@ final class TeamCityCommandWriter implements AutoCloseable {
             return "";
         }
         // https://www.jetbrains.com/help/teamcity/service-messages.html#Escaped+Values
-        // TODO: Missing \\uXXXX
         return source
                 .replace("|", "||")
                 .replace("'", "|'")
