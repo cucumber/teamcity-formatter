@@ -10,6 +10,9 @@ Interspaces Cucumbers output
 with [TeamCity Service Messages](https://www.jetbrains.com/help/teamcity/service-messages.html).
 This enables IntelliJ IDEA to render all Cucumber scenarios in a tree-diagram.
 
+<img width="2060" height="552" alt="Screenshot From 2025-09-12 15-30-43" src="https://github.com/user-attachments/assets/175e8f00-a5a9-4664-a616-f93ce1db6848" />
+
+
 ## Features and Limitations
 
 ### Print expected and actual values
@@ -23,6 +26,7 @@ For supported framework the output include the expected and actual value of an a
 | JUnit 5    | `AssertionFailureBuilder`         |
 | JUnit 4    | `Assert.assertEquals`             |
 | TestNG 7   | `Assert.assertEquals`             |
+
 
 ### Parallel execution
 
