@@ -5,8 +5,6 @@ import io.cucumber.messages.types.Attachment;
 import io.cucumber.messages.types.Envelope;
 import io.cucumber.messages.types.Exception;
 import io.cucumber.messages.types.Hook;
-import io.cucumber.messages.types.JavaMethod;
-import io.cucumber.messages.types.JavaStackTraceElement;
 import io.cucumber.messages.types.Location;
 import io.cucumber.messages.types.Pickle;
 import io.cucumber.messages.types.PickleStep;
@@ -42,6 +40,7 @@ import java.util.stream.Stream;
 
 import static io.cucumber.messages.Convertor.toDuration;
 import static io.cucumber.query.LineageReducer.descending;
+import static io.cucumber.teamcityformatter.SourceReferenceFormatter.formatMethodName;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
@@ -298,7 +297,7 @@ final class TeamCityWriter implements AutoCloseable {
     private Optional<String> findHookStepLocation(TestStep testStep) {
         return query.findHookBy(testStep)
                 .map(Hook::getSourceReference)
-                .flatMap(SourceReferenceFormatter::format);
+                .flatMap(SourceReferenceFormatter::formatLocation);
     }
 
     private void printTestStepFinished(TestStepFinished event) {
@@ -360,30 +359,13 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private static String formatHookStepName(Hook hook) {
-        // TODO: Use hook name.
-        SourceReference sourceReference = hook.getSourceReference();
-        return sourceReference.getJavaMethod()
-                .map(javaMethod -> formatJavaMethodName(hook, javaMethod))
-                .orElseGet(() -> sourceReference.getJavaStackTraceElement()
-                        .map(javaStackTraceElement -> formatJavaStackTraceName(hook, javaStackTraceElement))
-                        .orElse("Unknown"));
+        String hookName = hook.getName().orElseGet(() -> getHookType(hook));
+        return formatMethodName(hook.getSourceReference())
+                .map(methodName -> String.format("%s(%s)", hookName, methodName))
+                .orElse(hookName);
     }
 
-    private static String formatJavaStackTraceName(Hook hook, JavaStackTraceElement javaStackTraceElement) {
-        String methodName = javaStackTraceElement.getMethodName();
-        String fqClassName = javaStackTraceElement.getClassName();
-        String hookName = getHookName(hook);
-        String sanitizeMethodName = SourceReferenceFormatter.sanitizeMethodName(fqClassName, methodName);
-        return String.format("%s(%s)", hookName, sanitizeMethodName);
-    }
-
-    private static String formatJavaMethodName(Hook hook, JavaMethod javaMethod) {
-        String methodName = javaMethod.getMethodName();
-        String hookName = getHookName(hook);
-        return String.format("%s(%s)", hookName, methodName);
-    }
-
-    private static String getHookName(Hook hook) {
+    private static String getHookType(Hook hook) {
         return hook.getType().map(
                 hookType -> {
                     switch (hookType) {
@@ -409,7 +391,6 @@ final class TeamCityWriter implements AutoCloseable {
         return query.findPickleBy(event)
                 .map(query::findSuggestionsBy)
                 .map(TeamCityWriter::createMessage);
-
     }
 
     private static String createMessage(Collection<Suggestion> suggestions) {

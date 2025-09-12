@@ -8,7 +8,7 @@ import java.util.Optional;
 
 final class SourceReferenceFormatter {
 
-    static Optional<String> format(SourceReference sourceReference) {
+    static Optional<String> formatLocation(SourceReference sourceReference) {
         if (sourceReference.getJavaMethod().isPresent()) {
             return sourceReference.getJavaMethod()
                     .map(SourceReferenceFormatter::formatJavaMethodLocation);
@@ -38,7 +38,7 @@ final class SourceReferenceFormatter {
         return String.format("java:test://%s/%s", fqClassName, methodName);
     }
 
-    static String sanitizeMethodName(String fqClassName, String methodName) {
+    private static String sanitizeMethodName(String fqClassName, String methodName) {
         if (!methodName.equals("<init>")) {
             return methodName;
         }
@@ -47,6 +47,28 @@ final class SourceReferenceFormatter {
         if (classNameIndex > 0) {
             return fqClassName.substring(classNameIndex + 1);
         }
-        return methodName;
+        return fqClassName;
+    }
+
+    static Optional<String> formatMethodName(SourceReference sourceReference) {
+        if (sourceReference.getJavaMethod().isPresent()) {
+            return sourceReference.getJavaMethod()
+                    .map(SourceReferenceFormatter::formatJavaMethodName);
+        }
+        if (sourceReference.getJavaStackTraceElement().isPresent()) {
+            return sourceReference.getJavaStackTraceElement()
+                    .map(SourceReferenceFormatter::formatJavaStackTraceName);
+        }
+        return Optional.empty();
+    }
+
+    private static String formatJavaStackTraceName(JavaStackTraceElement javaStackTraceElement) {
+        String methodName = javaStackTraceElement.getMethodName();
+        String fqClassName = javaStackTraceElement.getClassName();
+        return sanitizeMethodName(fqClassName, methodName);
+    }
+
+    private static String formatJavaMethodName(JavaMethod javaMethod) {
+        return javaMethod.getMethodName();
     }
 }
