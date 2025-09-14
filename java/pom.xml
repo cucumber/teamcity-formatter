@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.cucumber</groupId>
         <artifactId>cucumber-parent</artifactId>
-        <version>4.3.8</version>
+        <version>4.3.7</version>
     </parent>
 
     <artifactId>teamcity-formatter</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>TeamCity Formatter</name>
     <description>Interspaces Cucumbers output with TeamCity Service Messages</description>
@@ -17,14 +17,14 @@
 
     <properties>
         <project.Automatic-Module-Name>io.cucumber.teamcityformatter</project.Automatic-Module-Name>
-        <project.build.outputTimestamp>1757606705</project.build.outputTimestamp>
+        <project.build.outputTimestamp>1757857773</project.build.outputTimestamp>
     </properties>
 
     <scm>
         <connection>scm:git:git://github.com/cucumber/teamcity-formatter.git</connection>
         <developerConnection>scm:git:git@github.com:cucumber/teamcity-formatter.git</developerConnection>
         <url>git://github.com/cucumber/teamcity-formatter.git</url>
-        <tag>HEAD</tag>
+        <tag>v0.1.0</tag>
     </scm>
 
     <dependencyManagement>
@@ -108,6 +108,7 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>7.11.0</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
