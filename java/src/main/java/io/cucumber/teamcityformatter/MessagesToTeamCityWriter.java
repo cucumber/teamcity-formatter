@@ -17,7 +17,8 @@ import static io.cucumber.teamcityformatter.MessagesToTeamCityWriter.TeamCityFea
 import static java.util.Objects.requireNonNull;
 
 /**
- * Writes <a href=https://www.jetbrains.com/help/teamcity/service-messages.html>TeamCity - Service Messages</a>.
+ * Writes <a href="https://github.com/cucumber/messages">Cucumber Messages</a>
+ * as <a href=https://www.jetbrains.com/help/teamcity/service-messages.html>TeamCity - Service Messages</a>.
  */
 public final class MessagesToTeamCityWriter implements AutoCloseable {
 
@@ -45,7 +46,7 @@ public final class MessagesToTeamCityWriter implements AutoCloseable {
     }
 
     /**
-     * Writes a cucumber message to the pretty output.
+     * Writes a cucumber message.
      *
      * @param envelope the message
      * @throws IOException if an IO error occurs

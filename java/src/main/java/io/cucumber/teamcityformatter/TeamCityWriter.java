@@ -45,6 +45,16 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 import static java.util.stream.Collectors.joining;
 
+/**
+ * Writes Cucumber messages as TeamCity messages.
+ * <p>
+ * IDEA presents tests execution in a tree diagram. Cucumber however does
+ * have any hierarchy. Everything is executed as a pickle. 
+ * <p>
+ * To simulate a hierarchy we use the {@link io.cucumber.query.Lineage} of a
+ * {@link Pickle} in a feature file. Whenever the lineage changes we publish
+ * the right {@code testStarted} and {@code testFinished} messages.
+ */
 final class TeamCityWriter implements AutoCloseable {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss.SSSZ");
@@ -92,12 +102,12 @@ final class TeamCityWriter implements AutoCloseable {
 
     private static final String TEMPLATE_ATTACH_WRITE_EVENT = TEAMCITY_PREFIX + "[message text='%s' status='NORMAL']";
 
-    private final LineageReducer<List<TreeNode>> pathCollector = descending(PathCollector::new);
-
+    private final LineageReducer<List<LineageNode>> pathCollector = descending(PathCollector::new);
 
     // Only used when executing concurrently.
     private final Map<String, List<String>> attachmentMessagesByStepId = new HashMap<>();
-    private List<TreeNode> currentPath = new ArrayList<>();
+    
+    private List<LineageNode> currentLineage = new ArrayList<>();
 
     private final TeamCityCommandWriter out;
     private final Query query;
@@ -225,60 +235,60 @@ final class TeamCityWriter implements AutoCloseable {
 
     private void printTestCaseStarted(TestCaseStarted event) {
         query.findPickleBy(event)
-                .flatMap(this::findPathTo)
-                .ifPresent(path -> {
+                .flatMap(this::createLineageOf)
+                .ifPresent(lineage -> {
                     String timestamp = formatTimeStamp(event.getTimestamp());
-                    poppedNodes(path).forEach(node -> finishNode(timestamp, node));
-                    pushedNodes(path).forEach(node -> startNode(timestamp, node));
-                    this.currentPath = path;
+                    poppedNodes(lineage).forEach(node -> finishNode(timestamp, node));
+                    pushedNodes(lineage).forEach(node -> startNode(timestamp, node));
+                    this.currentLineage = lineage;
                     out.print(TEMPLATE_PROGRESS_TEST_STARTED, timestamp);
                 });
     }
 
-    private Optional<List<TreeNode>> findPathTo(Pickle pickle) {
+    private Optional<List<LineageNode>> createLineageOf(Pickle pickle) {
         return query.findLineageBy(pickle)
                 .map(lineage -> pathCollector.reduce(lineage, pickle));
     }
 
-    private void startNode(String timestamp, TreeNode node) {
+    private void startNode(String timestamp, LineageNode node) {
         String name = node.getName();
         String location = node.getUri() + ":" + node.getLocation().getLine();
         out.print(TEMPLATE_TEST_SUITE_STARTED, timestamp, location, name);
     }
 
-    private void finishNode(String timestamp, TreeNode node) {
+    private void finishNode(String timestamp, LineageNode node) {
         String name = node.getName();
         out.print(TEMPLATE_TEST_SUITE_FINISHED, timestamp, name);
     }
 
-    private List<TreeNode> poppedNodes(List<TreeNode> newStack) {
-        List<TreeNode> nodes = new ArrayList<>(reversedPoppedNodes(currentPath, newStack));
+    private List<LineageNode> poppedNodes(List<LineageNode> newLineage) {
+        List<LineageNode> nodes = new ArrayList<>(reversedPoppedNodes(currentLineage, newLineage));
         Collections.reverse(nodes);
         return nodes;
     }
 
-    private List<TreeNode> reversedPoppedNodes(List<TreeNode> currentStack, List<TreeNode> newStack) {
-        for (int i = 0; i < currentStack.size() && i < newStack.size(); i++) {
-            if (!currentStack.get(i).equals(newStack.get(i))) {
-                return currentStack.subList(i, currentStack.size());
+    private List<LineageNode> reversedPoppedNodes(List<LineageNode> currentLineage, List<LineageNode> newLineage) {
+        for (int i = 0; i < currentLineage.size() && i < newLineage.size(); i++) {
+            if (!currentLineage.get(i).equals(newLineage.get(i))) {
+                return currentLineage.subList(i, currentLineage.size());
             }
         }
-        if (newStack.size() < currentStack.size()) {
-            return currentStack.subList(newStack.size(), currentStack.size());
+        if (newLineage.size() < currentLineage.size()) {
+            return currentLineage.subList(newLineage.size(), currentLineage.size());
         }
         return emptyList();
     }
 
-    private List<TreeNode> pushedNodes(List<TreeNode> newStack) {
-        for (int i = 0; i < currentPath.size() && i < newStack.size(); i++) {
-            if (!currentPath.get(i).equals(newStack.get(i))) {
-                return newStack.subList(i, newStack.size());
+    private List<LineageNode> pushedNodes(List<LineageNode> newLineage) {
+        for (int i = 0; i < currentLineage.size() && i < newLineage.size(); i++) {
+            if (!currentLineage.get(i).equals(newLineage.get(i))) {
+                return newLineage.subList(i, newLineage.size());
             }
         }
-        if (newStack.size() < currentPath.size()) {
+        if (newLineage.size() < currentLineage.size()) {
             return emptyList();
         }
-        return newStack.subList(currentPath.size(), newStack.size());
+        return newLineage.subList(currentLineage.size(), newLineage.size());
     }
 
     private void printTestStepStarted(TestStepStarted event) {
@@ -426,16 +436,16 @@ final class TeamCityWriter implements AutoCloseable {
     private void printTestCaseFinished(TestCaseFinished event) {
         String timestamp = formatTimeStamp(event.getTimestamp());
         out.print(TEMPLATE_PROGRESS_TEST_FINISHED, timestamp);
-        finishNode(timestamp, currentPath.remove(currentPath.size() - 1));
+        finishNode(timestamp, currentLineage.remove(currentLineage.size() - 1));
     }
 
     private void printTestRunFinished(TestRunFinished event) {
         String timestamp = formatTimeStamp(event.getTimestamp());
         out.print(TEMPLATE_PROGRESS_COUNTING_FINISHED, timestamp);
 
-        List<TreeNode> emptyPath = new ArrayList<>();
+        List<LineageNode> emptyPath = new ArrayList<>();
         poppedNodes(emptyPath).forEach(node -> finishNode(timestamp, node));
-        currentPath = emptyPath;
+        currentLineage = emptyPath;
 
         printBeforeAfterAllResult(event, timestamp);
         out.print(TEMPLATE_TEST_RUN_FINISHED, timestamp);

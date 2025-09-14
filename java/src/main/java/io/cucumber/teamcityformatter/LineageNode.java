@@ -4,12 +4,15 @@ import io.cucumber.messages.types.Location;
 
 import java.util.Objects;
 
-final class TreeNode {
+/**
+ * Simplified representation of a {@link io.cucumber.query.Lineage} element.
+ */
+final class LineageNode {
     private final String name;
     private final String uri;
     private final Location location;
 
-    TreeNode(String name, String uri, Location location) {
+    LineageNode(String name, String uri, Location location) {
         this.name = name;
         this.uri = uri;
         this.location = location;
@@ -31,7 +34,7 @@ final class TreeNode {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass())
             return false;
-        TreeNode that = (TreeNode) o;
+        LineageNode that = (LineageNode) o;
         return Objects.equals(name, that.name) && Objects.equals(uri, that.uri)
                 && Objects.equals(location, that.location);
     }
