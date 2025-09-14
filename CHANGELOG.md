@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.1.1] - 2025-09-14
-
-## Fixed
+### Fixed
+- Change scope for `org.testng:testng` to `test`
 
 ## [0.1.0] - 2025-09-14
 ### Added
