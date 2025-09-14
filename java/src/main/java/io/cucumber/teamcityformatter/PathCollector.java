@@ -14,7 +14,7 @@ import java.util.List;
 
 final class PathCollector implements LineageReducer.Collector<List<LineageNode>> {
     // There are at most 5 levels to a feature file.
-    private final List<LineageNode> path = new ArrayList<>(5);
+    private final List<LineageNode> lineage = new ArrayList<>(5);
     private String uri;
     private String scenarioName;
     private int examplesIndex;
@@ -28,26 +28,26 @@ final class PathCollector implements LineageReducer.Collector<List<LineageNode>>
     @Override
     public void add(Feature feature) {
         String name = getNameOrKeyword(feature.getName(), feature.getKeyword());
-        path.add(new LineageNode(name, uri, feature.getLocation()));
+        lineage.add(new LineageNode(name, uri, feature.getLocation()));
     }
 
     @Override
     public void add(Rule rule) {
         String name = getNameOrKeyword(rule.getName(), rule.getKeyword());
-        path.add(new LineageNode(name, uri, rule.getLocation()));
+        lineage.add(new LineageNode(name, uri, rule.getLocation()));
     }
 
     @Override
     public void add(Scenario scenario) {
         String name = getNameOrKeyword(scenario.getName(), scenario.getKeyword());
-        path.add(new LineageNode(name, uri, scenario.getLocation()));
+        lineage.add(new LineageNode(name, uri, scenario.getLocation()));
         scenarioName = name;
     }
 
     @Override
     public void add(Examples examples, int index) {
         String name = getNameOrKeyword(examples.getName(), examples.getKeyword());
-        path.add(new LineageNode(name, uri, examples.getLocation()));
+        lineage.add(new LineageNode(name, uri, examples.getLocation()));
         examplesIndex = index;
     }
 
@@ -55,7 +55,7 @@ final class PathCollector implements LineageReducer.Collector<List<LineageNode>>
     public void add(TableRow example, int index) {
         isExample = true;
         String name = "#" + (examplesIndex + 1) + "." + (index + 1);
-        path.add(new LineageNode(name, uri, example.getLocation()));
+        lineage.add(new LineageNode(name, uri, example.getLocation()));
     }
 
     @Override
@@ -65,9 +65,9 @@ final class PathCollector implements LineageReducer.Collector<List<LineageNode>>
             String pickleName = pickle.getName();
             boolean parameterized = !scenarioName.equals(pickleName);
             if (parameterized) {
-                LineageNode example = path.remove(path.size() - 1);
+                LineageNode example = lineage.remove(lineage.size() - 1);
                 String parameterizedExampleName = example.getName() + ": " + pickleName;
-                path.add(new LineageNode(parameterizedExampleName, example.getUri(), example.getLocation()));
+                lineage.add(new LineageNode(parameterizedExampleName, example.getUri(), example.getLocation()));
             }
         }
         // Case 2: Pickles from a scenario
@@ -76,7 +76,7 @@ final class PathCollector implements LineageReducer.Collector<List<LineageNode>>
 
     @Override
     public List<LineageNode> finish() {
-        return path;
+        return lineage;
     }
 
     private static String getNameOrKeyword(String name, String keyword) {

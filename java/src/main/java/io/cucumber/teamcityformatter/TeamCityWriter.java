@@ -8,8 +8,6 @@ import io.cucumber.messages.types.Hook;
 import io.cucumber.messages.types.Location;
 import io.cucumber.messages.types.Pickle;
 import io.cucumber.messages.types.PickleStep;
-import io.cucumber.messages.types.Snippet;
-import io.cucumber.messages.types.Suggestion;
 import io.cucumber.messages.types.TestCaseFinished;
 import io.cucumber.messages.types.TestCaseStarted;
 import io.cucumber.messages.types.TestRunFinished;
@@ -27,7 +25,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -43,7 +40,6 @@ import static io.cucumber.teamcityformatter.SourceReferenceFormatter.formatMetho
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
-import static java.util.stream.Collectors.joining;
 
 /**
  * Writes Cucumber messages as TeamCity messages.
@@ -410,27 +406,7 @@ final class TeamCityWriter implements AutoCloseable {
     private Optional<String> findSnippets(TestStepFinished event) {
         return query.findPickleBy(event)
                 .map(query::findSuggestionsBy)
-                .map(TeamCityWriter::createMessage);
-    }
-
-    private static String createMessage(Collection<Suggestion> suggestions) {
-        if (suggestions.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder("You can implement this step");
-        if (suggestions.size() > 1) {
-            sb.append(" and ").append(suggestions.size() - 1).append(" other step(s)");
-        }
-        sb.append(" using the snippet(s) below:\n\n");
-        String snippets = suggestions
-                .stream()
-                .map(Suggestion::getSnippets)
-                .flatMap(Collection::stream)
-                .map(Snippet::getCode)
-                .distinct()
-                .collect(joining("\n", "", "\n"));
-        sb.append(snippets);
-        return sb.toString();
+                .map(SuggestionFormatter::format);
     }
 
     private void printTestCaseFinished(TestCaseFinished event) {
