@@ -130,9 +130,6 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private Stream<TestCaseStarted> findTestCasesInCanonicalOrder() {
-        Comparator<Orderable<TestCaseStarted>> comparing = Comparator
-                .comparing((Orderable<TestCaseStarted> ord) -> ord.uri, nullsFirst(naturalOrder()))
-                .thenComparing(ord -> ord.line, nullsFirst(naturalOrder()));
         return query.findAllTestCaseStarted().stream()
                 .map(testCaseStarted -> {
                     Optional<Pickle> pickle = query.findPickleBy(testCaseStarted);
@@ -140,7 +137,7 @@ final class TeamCityWriter implements AutoCloseable {
                     Long line = pickle.flatMap(query::findLocationOf).map(Location::getLine).orElse(null);
                     return new Orderable<>(testCaseStarted, uri, line);
                 })
-                .sorted(comparing)
+                .sorted()
                 .map(ord -> ord.event);
     }
 
@@ -149,7 +146,7 @@ final class TeamCityWriter implements AutoCloseable {
         out.close();
     }
 
-    private static final class Orderable<T> {
+    private static final class Orderable<T> implements Comparable<Orderable<T>> {
         private final T event;
         private final String uri;
         private final Long line;
@@ -158,6 +155,15 @@ final class TeamCityWriter implements AutoCloseable {
             this.event = event;
             this.uri = uri;
             this.line = line;
+        }
+
+        private final Comparator<Orderable<T>> comparing = Comparator
+                .comparing((Orderable<T> ord) -> ord.uri, nullsFirst(naturalOrder()))
+                .thenComparing(ord -> ord.line, nullsFirst(naturalOrder()));
+        
+        @Override
+        public int compareTo(Orderable<T> o) {
+            return comparing.compare(this, o);
         }
     }
 
@@ -366,7 +372,7 @@ final class TeamCityWriter implements AutoCloseable {
                         .orElse("")
                 );
 
-        return String.format("%s%s", hookType, name);
+        return hookType + name;
     }
 
     private static String getHookType(Hook hook) {
