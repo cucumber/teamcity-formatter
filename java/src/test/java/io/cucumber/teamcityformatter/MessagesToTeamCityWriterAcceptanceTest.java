@@ -104,7 +104,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
     @ParameterizedTest
     @MethodSource("acceptance")
     @Disabled
-    void updateExpectedPrettyFiles(TestCase testCase) throws IOException {
+    void updateExpectedFiles(TestCase testCase) throws IOException {
         try (OutputStream out = Files.newOutputStream(testCase.expected)) {
             writePrettyReport(testCase, out, testCase.builder, originalOrder());
         }
