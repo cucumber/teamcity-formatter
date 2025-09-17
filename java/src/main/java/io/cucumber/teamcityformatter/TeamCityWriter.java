@@ -26,7 +26,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +37,6 @@ import static io.cucumber.messages.Convertor.toDuration;
 import static io.cucumber.query.LineageReducer.descending;
 import static io.cucumber.teamcityformatter.SourceReferenceFormatter.formatMethodName;
 import static java.util.Collections.emptyList;
-import static java.util.Comparator.naturalOrder;
-import static java.util.Comparator.nullsFirst;
 
 /**
  * Writes Cucumber messages as TeamCity messages.
@@ -130,47 +127,26 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private void printCompleteTestRun(TestRunFinished event) {
-        findTestCasesInCanonicalOrder()
+        findAllTestCaseStartedInCanonicalOrder()
                 .forEach(this::printCompleteTestCase);
         printTestRunFinished(event);
     }
 
-    private Stream<TestCaseStarted> findTestCasesInCanonicalOrder() {
+    private Stream<TestCaseStarted> findAllTestCaseStartedInCanonicalOrder() {
         return query.findAllTestCaseStarted().stream()
                 .map(testCaseStarted -> {
                     Optional<Pickle> pickle = query.findPickleBy(testCaseStarted);
                     String uri = pickle.map(Pickle::getUri).orElse(null);
                     Long line = pickle.flatMap(query::findLocationOf).map(Location::getLine).orElse(null);
-                    return new Orderable<>(testCaseStarted, uri, line);
+                    return new OrderableEvent<>(testCaseStarted, uri, line);
                 })
                 .sorted()
-                .map(ord -> ord.event);
+                .map(OrderableEvent::getEvent);
     }
 
     @Override
     public void close() {
         out.close();
-    }
-
-    private static final class Orderable<T> implements Comparable<Orderable<T>> {
-        private final T event;
-        private final String uri;
-        private final Long line;
-
-        private Orderable(T event, String uri, Long line) {
-            this.event = event;
-            this.uri = uri;
-            this.line = line;
-        }
-
-        private final Comparator<Orderable<T>> comparing = Comparator
-                .comparing((Orderable<T> ord) -> ord.uri, nullsFirst(naturalOrder()))
-                .thenComparing(ord -> ord.line, nullsFirst(naturalOrder()));
-        
-        @Override
-        public int compareTo(Orderable<T> o) {
-            return comparing.compare(this, o);
-        }
     }
 
     private void printCompleteTestCase(TestCaseStarted testCaseStarted) {
