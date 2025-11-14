@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.shadow.de.siegmar.fastcsv.util.Nullable;
 
-import java.util.Objects;
-
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
