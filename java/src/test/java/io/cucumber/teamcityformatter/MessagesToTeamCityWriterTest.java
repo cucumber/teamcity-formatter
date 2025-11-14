@@ -3,6 +3,7 @@ package io.cucumber.teamcityformatter;
 import io.cucumber.messages.types.Envelope;
 import io.cucumber.messages.types.TestRunFinished;
 import io.cucumber.messages.types.TestRunStarted;
+import io.cucumber.messages.types.Timestamp;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -46,7 +47,9 @@ class MessagesToTeamCityWriterTest {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         MessagesToTeamCityWriter writer = create(bytes);
         writer.close();
-        assertThrows(IOException.class, () -> writer.write(null));
+        assertThrows(IOException.class, () -> writer.write(
+                Envelope.of(new TestRunStarted(new Timestamp(0L, 0), ""))
+        ));
     }
 
     @Test
