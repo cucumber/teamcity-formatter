@@ -8,6 +8,10 @@ import java.util.Optional;
 
 final class SourceReferenceFormatter {
 
+    private SourceReferenceFormatter(){
+        // utility class
+    }
+    
     static Optional<String> formatLocation(SourceReference sourceReference) {
         if (sourceReference.getJavaMethod().isPresent()) {
             return sourceReference.getJavaMethod()

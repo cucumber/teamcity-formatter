@@ -1,17 +1,20 @@
 package io.cucumber.teamcityformatter;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Comparator;
 
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
+import static java.util.Objects.requireNonNull;
 
 final class OrderableEvent<T> implements Comparable<OrderableEvent<T>> {
     private final T event;
-    private final String uri;
-    private final Long line;
+    private final @Nullable String uri;
+    private final @Nullable Integer line;
 
-    OrderableEvent(T event, String uri, Long line) {
-        this.event = event;
+    OrderableEvent(T event, @Nullable String uri, @Nullable Integer line) {
+        this.event = requireNonNull(event);
         this.uri = uri;
         this.line = line;
     }
