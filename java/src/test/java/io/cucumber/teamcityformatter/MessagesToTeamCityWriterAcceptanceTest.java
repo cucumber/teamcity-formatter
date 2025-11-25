@@ -3,7 +3,6 @@ package io.cucumber.teamcityformatter;
 import io.cucumber.compatibilitykit.MessageOrderer;
 import io.cucumber.messages.NdjsonToMessageIterable;
 import io.cucumber.messages.types.Envelope;
-import io.cucumber.teamcityformatter.MessagesToTeamCityWriter.Builder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,12 +24,13 @@ import java.util.stream.Stream;
 
 import static io.cucumber.teamcityformatter.Jackson.OBJECT_MAPPER;
 import static io.cucumber.teamcityformatter.MessagesToTeamCityWriter.TeamCityFeature.PRINT_TEST_CASES_AFTER_TEST_RUN;
-import static java.nio.file.Files.readAllBytes;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class MessagesToTeamCityWriterAcceptanceTest {
-    private static final NdjsonToMessageIterable.Deserializer deserializer = (json) -> OBJECT_MAPPER.readValue(json, Envelope.class);
+    private static final NdjsonToMessageIterable.Deserializer deserializer = json -> OBJECT_MAPPER.readValue(json, Envelope.class);
     private static final Random random = new Random(202509121959L);
     private static final MessageOrderer messageOrderer = new MessageOrderer(random);
 
@@ -51,11 +51,11 @@ class MessagesToTeamCityWriterAcceptanceTest {
         }
     }
 
-    private static ByteArrayOutputStream writePrettyReport(TestCase testCase, Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
+    private static ByteArrayOutputStream writePrettyReport(TestCase testCase, MessagesToTeamCityWriter.Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
         return writePrettyReport(testCase, new ByteArrayOutputStream(), builder, orderer);
     }
 
-    private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
+    private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, MessagesToTeamCityWriter.Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
         List<Envelope> messages = new ArrayList<>();
         try (InputStream in = Files.newInputStream(testCase.source)) {
             try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, deserializer)) {
@@ -76,7 +76,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
     @MethodSource("acceptance")
     void test(TestCase testCase) throws IOException {
         ByteArrayOutputStream bytes = writePrettyReport(testCase, testCase.builder, messageOrderer.originalOrder());
-        assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
+        assertThat(bytes.toString(UTF_8)).isEqualToIgnoringNewLines(Files.readString(testCase.expected));
     }
 
     private final List<String> exceptions = Arrays.asList(
@@ -91,18 +91,18 @@ class MessagesToTeamCityWriterAcceptanceTest {
     void testPrintAfterTestRun(TestCase testCase) throws IOException {
         assumeFalse(() -> exceptions.contains(testCase.name));
 
-        Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
+        MessagesToTeamCityWriter.Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
         ByteArrayOutputStream bytes = writePrettyReport(testCase, builder, messageOrderer.originalOrder());
-        assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
+        assertThat(bytes.toString(UTF_8)).isEqualToIgnoringNewLines(Files.readString(testCase.expected));
     }
 
     @ParameterizedTest
     @MethodSource("acceptance")
     void testPrintAfterTestRunWithSimulatedParallelExecution(TestCase testCase) throws IOException {
         assumeFalse(() -> exceptions.contains(testCase.name));
-        Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
+        MessagesToTeamCityWriter.Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
         ByteArrayOutputStream bytes = writePrettyReport(testCase, builder, messageOrderer.simulateParallelExecution());
-        assertThat(bytes.toString()).isEqualToIgnoringNewLines(new String(readAllBytes(testCase.expected)));
+        assertThat(bytes.toString(UTF_8)).isEqualToIgnoringNewLines(Files.readString(testCase.expected));
     }
 
     @ParameterizedTest
@@ -116,17 +116,17 @@ class MessagesToTeamCityWriterAcceptanceTest {
 
     static class TestCase {
         private final Path source;
-        private final Builder builder;
+        private final MessagesToTeamCityWriter.Builder builder;
         private final Path expected;
 
         private final String name;
 
-        TestCase(Path source, Builder builder) {
+        TestCase(Path source, MessagesToTeamCityWriter.Builder builder) {
             this.source = source;
             this.builder = builder;
             String fileName = source.getFileName().toString();
             this.name = fileName.substring(0, fileName.lastIndexOf(".ndjson"));
-            this.expected = source.getParent().resolve(name + ".log");
+            this.expected = requireNonNull(source.getParent()).resolve(name + ".log");
         }
 
         @Override
