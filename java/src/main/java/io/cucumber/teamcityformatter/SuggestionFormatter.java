@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.joining;
 final class SuggestionFormatter {
     
     private SuggestionFormatter(){
-        // utility class
+        /* no-op */
     }
     
     static String format(Collection<Suggestion> suggestions) {

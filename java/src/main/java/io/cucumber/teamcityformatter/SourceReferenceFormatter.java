@@ -9,7 +9,7 @@ import java.util.Optional;
 final class SourceReferenceFormatter {
 
     private SourceReferenceFormatter(){
-        // utility class
+        /* no-op */
     }
     
     static Optional<String> formatLocation(SourceReference sourceReference) {
