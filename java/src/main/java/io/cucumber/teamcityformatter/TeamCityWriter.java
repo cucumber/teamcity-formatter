@@ -42,7 +42,7 @@ import static java.util.Collections.emptyList;
  * Writes Cucumber messages as TeamCity messages.
  * <p>
  * IDEA presents tests execution in a tree diagram. Cucumber however does
- * have any hierarchy. Everything is executed as a pickle. 
+ * have any hierarchy. Everything is executed as a pickle.
  * <p>
  * To simulate a hierarchy we use the {@link io.cucumber.query.Lineage} of a
  * {@link Pickle} in a feature file. Whenever the lineage changes we publish
@@ -99,7 +99,7 @@ final class TeamCityWriter implements AutoCloseable {
 
     // Only used when executing concurrently.
     private final Map<String, List<String>> attachmentMessagesByStepId = new HashMap<>();
-    
+
     private List<LineageNode> currentLineage = new ArrayList<>();
 
     private final TeamCityCommandWriter out;
@@ -411,11 +411,15 @@ final class TeamCityWriter implements AutoCloseable {
 
     private static String extractAttachmentMessage(Attachment event) {
         return switch (event.getContentEncoding()) {
-            case IDENTITY -> "Write event:\n" + event.getBody() + "\n";
+            case IDENTITY -> """
+                    Write event:
+                    %s
+                    """.formatted(event.getBody());
             case BASE64 -> {
                 String name = event.getFileName().map(s -> s + " ").orElse("");
-                yield "Embed event: " + name + "[" + event.getMediaType() + " " + (event.getBody().length() / 4) * 3
-                        + " bytes]\n";
+                yield """
+                        Embed event: %s[%s %d bytes]
+                        """.formatted(name, event.getMediaType(), (event.getBody().length() / 4) * 3);
             }
         };
     }

@@ -34,7 +34,7 @@ final class TeamCityCommandWriter implements AutoCloseable {
             escapedParameters[i] = escape(parameters[i].toString());
         }
 
-        return String.format(command, (Object[]) escapedParameters);
+        return command.formatted((Object[]) escapedParameters);
     }
 
     private String escape(String source) {
