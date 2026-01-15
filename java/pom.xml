@@ -17,7 +17,6 @@
     <url>https://github.com/cucumber/teamcity-formatter</url>
 
     <properties>
-        <osgi.bundle-symbolic-name>io.cucumber.teamcityformatter</osgi.bundle-symbolic-name>
         <project.build.outputTimestamp>1761578982</project.build.outputTimestamp>
     </properties>
 
