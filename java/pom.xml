@@ -17,6 +17,7 @@
     <url>https://github.com/cucumber/teamcity-formatter</url>
 
     <properties>
+        <project.Automatic-Module-Name>io.cucumber.teamcityformatter</project.Automatic-Module-Name>
         <project.build.outputTimestamp>1761578982</project.build.outputTimestamp>
     </properties>
 
@@ -32,15 +33,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>6.0.1</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>2.20.1</version>
+                <version>6.0.2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -69,26 +62,15 @@
 
         <dependency>
             <groupId>io.cucumber</groupId>
+            <artifactId>messages-ndjson</artifactId>
+            <version>0.4.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.cucumber</groupId>
             <artifactId>compatibility-kit</artifactId>
-            <version>24.0.1</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-parameter-names</artifactId>
+            <version>27.0.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -114,7 +96,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.11.0</version>
+            <version>7.12.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -131,7 +113,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>

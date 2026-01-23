@@ -2,6 +2,7 @@ package io.cucumber.teamcityformatter;
 
 import io.cucumber.compatibilitykit.MessageOrderer;
 import io.cucumber.messages.NdjsonToMessageIterable;
+import io.cucumber.messages.ndjson.Deserializer;
 import io.cucumber.messages.types.Envelope;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,7 +23,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.cucumber.teamcityformatter.Jackson.OBJECT_MAPPER;
 import static io.cucumber.teamcityformatter.MessagesToTeamCityWriter.TeamCityFeature.PRINT_TEST_CASES_AFTER_TEST_RUN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 class MessagesToTeamCityWriterAcceptanceTest {
-    private static final NdjsonToMessageIterable.Deserializer deserializer = json -> OBJECT_MAPPER.readValue(json, Envelope.class);
     private static final Random random = new Random(202509121959L);
     private static final MessageOrderer messageOrderer = new MessageOrderer(random);
 
@@ -58,7 +57,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
     private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, MessagesToTeamCityWriter.Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
         List<Envelope> messages = new ArrayList<>();
         try (InputStream in = Files.newInputStream(testCase.source)) {
-            try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, deserializer)) {
+            try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, new Deserializer())) {
                 envelopes.forEach(messages::add);
             }
         }
