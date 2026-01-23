@@ -1,7 +1,7 @@
 package io.cucumber.teamcityformatter;
 
 import io.cucumber.compatibilitykit.MessageOrderer;
-import io.cucumber.messages.NdjsonToMessageIterable;
+import io.cucumber.messages.NdjsonToMessageReader;
 import io.cucumber.messages.ndjson.Deserializer;
 import io.cucumber.messages.types.Envelope;
 import org.junit.jupiter.api.Disabled;
@@ -10,7 +10,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,17 +54,15 @@ class MessagesToTeamCityWriterAcceptanceTest {
     }
 
     private static <T extends OutputStream> T writePrettyReport(TestCase testCase, T out, MessagesToTeamCityWriter.Builder builder, Consumer<List<Envelope>> orderer) throws IOException {
-        List<Envelope> messages = new ArrayList<>();
-        try (InputStream in = Files.newInputStream(testCase.source)) {
-            try (NdjsonToMessageIterable envelopes = new NdjsonToMessageIterable(in, new Deserializer())) {
-                envelopes.forEach(messages::add);
-            }
-        }
-        orderer.accept(messages);
-
-        try (MessagesToTeamCityWriter writer = builder.build(out)) {
-            for (Envelope envelope : messages) {
-                writer.write(envelope);
+        try (var in = Files.newInputStream(testCase.source)) {
+            try (var reader = new NdjsonToMessageReader(in, new Deserializer())) {
+                var messages = reader.lines().collect(Collectors.toList());
+                orderer.accept(messages);
+                try (var writer = builder.build(out)) {
+                    for (Envelope envelope : messages) {
+                        writer.write(envelope);
+                    }
+                }
             }
         }
         return out;
