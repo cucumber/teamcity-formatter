@@ -11,8 +11,8 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Could be replaced by <a href=https://github.com/cucumber/compatibility-kit/issues/131>compatibility-kit#131</a>. 
-  */
+ * Could be replaced by <a href=https://github.com/cucumber/compatibility-kit/issues/131>compatibility-kit#131</a>.
+ */
 class SourceReferenceFormatterTest {
 
     @Test
@@ -69,7 +69,7 @@ class SourceReferenceFormatterTest {
                         "path/to/org/example/Example.java",
                         "example"
                 ),
-                new Location(31415L, 42L)
+                new Location(31415, 42)
         );
         assertThat(SourceReferenceFormatter.formatLocation(sourceReference))
                 .contains("java:test://org.example.Example/example");
@@ -86,7 +86,7 @@ class SourceReferenceFormatterTest {
                         "path/to/Example.java",
                         "<init>"
                 ),
-                new Location(31415L, 42L)
+                new Location(31415, 42)
         );
         assertThat(SourceReferenceFormatter.formatLocation(sourceReference))
                 .contains("java:test://Example/Example");
@@ -102,7 +102,7 @@ class SourceReferenceFormatterTest {
                         "path/to/org/example/Example.java",
                         "<init>"
                 ),
-                new Location(31415L, 42L)
+                new Location(31415, 42)
         );
         assertThat(SourceReferenceFormatter.formatLocation(sourceReference))
                 .contains("java:test://org.example.Example/Example");

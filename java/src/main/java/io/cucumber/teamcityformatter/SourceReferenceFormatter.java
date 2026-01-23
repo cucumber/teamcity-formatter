@@ -8,6 +8,10 @@ import java.util.Optional;
 
 final class SourceReferenceFormatter {
 
+    private SourceReferenceFormatter(){
+        /* no-op */
+    }
+    
     static Optional<String> formatLocation(SourceReference sourceReference) {
         if (sourceReference.getJavaMethod().isPresent()) {
             return sourceReference.getJavaMethod()
@@ -35,7 +39,7 @@ final class SourceReferenceFormatter {
     private static String createJavaTestUri(String fqClassName, String methodName) {
         // See:
         // https://github.com/JetBrains/intellij-community/blob/master/java/execution/impl/src/com/intellij/execution/testframework/JavaTestLocator.java
-        return String.format("java:test://%s/%s", fqClassName, methodName);
+        return "java:test://%s/%s".formatted(fqClassName, methodName);
     }
 
     private static String sanitizeMethodName(String fqClassName, String methodName) {

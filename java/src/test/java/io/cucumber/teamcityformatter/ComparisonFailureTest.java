@@ -2,7 +2,9 @@ package io.cucumber.teamcityformatter;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.shadow.de.siegmar.fastcsv.util.Nullable;
 
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,7 +35,6 @@ class ComparisonFailureTest {
                 .containsExactly("1", "42");
     }
 
-    @SuppressWarnings("JUnit5AssertionsConverter")
     @Test
     void junit4() {
         ComparisonFailure comparisonFailure = create(() -> org.junit.Assert.assertEquals(1, 42));
@@ -50,9 +51,9 @@ class ComparisonFailureTest {
                 .containsExactly("1", "42");
     }
 
-    private static ComparisonFailure create(Executable executable) {
+    private static @Nullable ComparisonFailure create(Executable executable) {
         AssertionError exception = assertThrows(AssertionError.class, executable);
-        return ComparisonFailure.parse(exception.getMessage());
+        return ComparisonFailure.parse(requireNonNull(exception.getMessage()));
     }
 
 }

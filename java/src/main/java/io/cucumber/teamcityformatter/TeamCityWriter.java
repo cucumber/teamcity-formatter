@@ -42,7 +42,7 @@ import static java.util.Collections.emptyList;
  * Writes Cucumber messages as TeamCity messages.
  * <p>
  * IDEA presents tests execution in a tree diagram. Cucumber however does
- * have any hierarchy. Everything is executed as a pickle. 
+ * have any hierarchy. Everything is executed as a pickle.
  * <p>
  * To simulate a hierarchy we use the {@link io.cucumber.query.Lineage} of a
  * {@link Pickle} in a feature file. Whenever the lineage changes we publish
@@ -99,7 +99,7 @@ final class TeamCityWriter implements AutoCloseable {
 
     // Only used when executing concurrently.
     private final Map<String, List<String>> attachmentMessagesByStepId = new HashMap<>();
-    
+
     private List<LineageNode> currentLineage = new ArrayList<>();
 
     private final TeamCityCommandWriter out;
@@ -137,7 +137,7 @@ final class TeamCityWriter implements AutoCloseable {
                 .map(testCaseStarted -> {
                     Optional<Pickle> pickle = query.findPickleBy(testCaseStarted);
                     String uri = pickle.map(Pickle::getUri).orElse(null);
-                    Long line = pickle.flatMap(query::findLocationOf).map(Location::getLine).orElse(null);
+                    Integer line = pickle.flatMap(query::findLocationOf).map(Location::getLine).orElse(null);
                     return new OrderableEvent<>(testCaseStarted, uri, line);
                 })
                 .sorted()
@@ -298,23 +298,19 @@ final class TeamCityWriter implements AutoCloseable {
             Optional<Exception> error = testStepResult.getException();
             TestStepResultStatus status = testStepResult.getStatus();
             switch (status) {
-                case SKIPPED: {
+                case SKIPPED -> {
                     String message = error.flatMap(Exception::getMessage).orElse("Step skipped");
                     out.print(TEMPLATE_TEST_IGNORED, timeStamp, duration, message, name);
-                    break;
                 }
-                case PENDING: {
+                case PENDING -> {
                     String details = error.flatMap(Exception::getMessage).orElse("");
                     out.print(TEMPLATE_TEST_FAILED, timeStamp, duration, "Step pending", details, name);
-                    break;
                 }
-                case UNDEFINED: {
+                case UNDEFINED -> {
                     String snippets = findSnippets(event).orElse("");
                     out.print(TEMPLATE_TEST_FAILED, timeStamp, duration, "Step undefined", snippets, name);
-                    break;
                 }
-                case AMBIGUOUS:
-                case FAILED: {
+                case AMBIGUOUS, FAILED -> {
                     String details = error.flatMap(Exception::getStackTrace).orElse("");
                     String message = error.flatMap(Exception::getMessage).orElse(null);
                     if (message == null) {
@@ -328,10 +324,9 @@ final class TeamCityWriter implements AutoCloseable {
                     }
                     out.print(TEMPLATE_TEST_COMPARISON_FAILED, timeStamp, duration, "Step failed", details,
                             comparisonFailure.getExpected(), comparisonFailure.getActual(), name);
-                    break;
                 }
-                default:
-                    break;
+                default -> {
+                }
             }
             out.print(TEMPLATE_TEST_FINISHED, timeStamp, duration, name);
         });
@@ -359,23 +354,13 @@ final class TeamCityWriter implements AutoCloseable {
 
     private static String getHookType(Hook hook) {
         return hook.getType().map(
-                hookType -> {
-                    switch (hookType) {
-                        case BEFORE_TEST_RUN:
-                            return "BeforeAll";
-                        case AFTER_TEST_RUN:
-                            return "AfterAll";
-                        case BEFORE_TEST_CASE:
-                            return "Before";
-                        case AFTER_TEST_CASE:
-                            return "After";
-                        case BEFORE_TEST_STEP:
-                            return "BeforeStep";
-                        case AFTER_TEST_STEP:
-                            return "AfterStep";
-                        default:
-                            return "Unknown";
-                    }
+                hookType -> switch (hookType) {
+                    case BEFORE_TEST_RUN -> "BeforeAll";
+                    case AFTER_TEST_RUN -> "AfterAll";
+                    case BEFORE_TEST_CASE -> "Before";
+                    case AFTER_TEST_CASE -> "After";
+                    case BEFORE_TEST_STEP -> "BeforeStep";
+                    case AFTER_TEST_STEP -> "AfterStep";
                 }).orElse("Unknown");
     }
 
@@ -417,10 +402,7 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private void handleAttachment(Attachment event) {
-        String message = extractAttachmentMessage(event);
-        if (message != null) {
-            handleAttachment(message);
-        }
+        handleAttachment(extractAttachmentMessage(event));
     }
 
     private void handleAttachment(String message) {
@@ -428,16 +410,18 @@ final class TeamCityWriter implements AutoCloseable {
     }
 
     private static String extractAttachmentMessage(Attachment event) {
-        switch (event.getContentEncoding()) {
-            case IDENTITY:
-                return "Write event:\n" + event.getBody() + "\n";
-            case BASE64:
+        return switch (event.getContentEncoding()) {
+            case IDENTITY -> """
+                    Write event:
+                    %s
+                    """.formatted(event.getBody());
+            case BASE64 -> {
                 String name = event.getFileName().map(s -> s + " ").orElse("");
-                return "Embed event: " + name + "[" + event.getMediaType() + " " + (event.getBody().length() / 4) * 3
-                        + " bytes]\n";
-            default:
-                return null;
-        }
+                yield """
+                        Embed event: %s[%s %d bytes]
+                        """.formatted(name, event.getMediaType(), (event.getBody().length() / 4) * 3);
+            }
+        };
     }
 
     private static String formatTimeStamp(Timestamp timestamp) {

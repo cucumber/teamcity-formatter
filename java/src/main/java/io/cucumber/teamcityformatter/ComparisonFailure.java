@@ -1,5 +1,7 @@
 package io.cucumber.teamcityformatter;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +27,7 @@ final class ComparisonFailure {
                     Pattern.DOTALL | Pattern.CASE_INSENSITIVE),
     };
 
+    @Nullable
     static ComparisonFailure parse(String message) {
         for (Pattern pattern : COMPARE_PATTERNS) {
             ComparisonFailure result = parse(message, pattern);
@@ -35,6 +38,7 @@ final class ComparisonFailure {
         return null;
     }
 
+    @Nullable
     static ComparisonFailure parse(String message, Pattern pattern) {
         final Matcher matcher = pattern.matcher(message);
         if (!matcher.find()) {
