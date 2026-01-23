@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.3.0] - 2026-01-23
+### Changed
+- Set release version to 17 ([#10](https://github.com/cucumber/teamcity-formatter/pull/10))
 
 ## [0.2.0] - 2025-10-27
 ### Changed
