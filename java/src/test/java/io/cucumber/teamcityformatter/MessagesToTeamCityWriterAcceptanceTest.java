@@ -79,7 +79,11 @@ class MessagesToTeamCityWriterAcceptanceTest {
             // TODO: Create issue to support global hooks in output
             "global-hooks-attachments",
             "retry",
-            "multiple-features-reversed"
+            "multiple-features-reversed",
+            // With multiple undefined steps, suggestions provided depend on the
+            // suggestions made. Which differs when tests cases are printed after
+            // the test run.
+            "failedish-combinations"
     );
 
     @ParameterizedTest
