@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - [Java] Use version range for `org.jspecify:jspecify`
 
+### Changed
+- Update upper bound on dependency io.cucumber:messages to v34
+
 ## [0.3.0] - 2026-01-23
 ### Changed
 - Set release version to 17 ([#10](https://github.com/cucumber/teamcity-formatter/pull/10))
