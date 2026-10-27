@@ -81,14 +81,18 @@ class MessagesToTeamCityWriterAcceptanceTest {
     }
 
     private final List<String> exceptions = Arrays.asList(
-            // TODO: Create issue to support global hooks in output
-            "global-hooks-attachments",
-            "retry",
-            "multiple-features-reversed",
+            // Order of undefined steps isn't guaranteed with simulated parallel execution
+            "examples-tables-undefined-multiple",
             // With multiple undefined steps, suggestions provided depend on the
             // suggestions made. Which differs when tests cases are printed after
             // the test run.
-            "failedish-combinations"
+            "failedish-combinations",
+            // TODO: Create issue to support global hooks in output
+            "global-hooks-attachments",
+            "multiple-features-reversed",
+            "retry",
+            // Order of undefined steps isn't guaranteed with simulated parallel execution
+            "undefined-multiple"
     );
 
     @ParameterizedTest
