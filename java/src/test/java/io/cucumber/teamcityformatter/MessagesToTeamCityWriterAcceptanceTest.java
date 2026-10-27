@@ -4,7 +4,8 @@ import io.cucumber.compatibilitykit.MessageOrderer;
 import io.cucumber.messages.NdjsonToMessageReader;
 import io.cucumber.messages.ndjson.Json;
 import io.cucumber.messages.types.Envelope;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -73,6 +74,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
 
     @ParameterizedTest
     @MethodSource("acceptance")
+    @DisabledIfEnvironmentVariable(named = "UPDATE_EXPECTED_FILES", matches = "true")
     void test(TestCase testCase) throws IOException {
         ByteArrayOutputStream bytes = writePrettyReport(testCase, testCase.builder, messageOrderer.originalOrder());
         assertThat(bytes.toString(UTF_8)).isEqualToIgnoringNewLines(Files.readString(testCase.expected));
@@ -91,6 +93,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
 
     @ParameterizedTest
     @MethodSource("acceptance")
+    @DisabledIfEnvironmentVariable(named = "UPDATE_EXPECTED_FILES", matches = "true")
     void testPrintAfterTestRun(TestCase testCase) throws IOException {
         assumeFalse(() -> exceptions.contains(testCase.name));
 
@@ -101,6 +104,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
 
     @ParameterizedTest
     @MethodSource("acceptance")
+    @DisabledIfEnvironmentVariable(named = "UPDATE_EXPECTED_FILES", matches = "true")
     void testPrintAfterTestRunWithSimulatedParallelExecution(TestCase testCase) throws IOException {
         assumeFalse(() -> exceptions.contains(testCase.name));
         MessagesToTeamCityWriter.Builder builder = testCase.builder.feature(PRINT_TEST_CASES_AFTER_TEST_RUN, true);
@@ -110,7 +114,7 @@ class MessagesToTeamCityWriterAcceptanceTest {
 
     @ParameterizedTest
     @MethodSource("acceptance")
-    @Disabled
+    @EnabledIfEnvironmentVariable(named = "UPDATE_EXPECTED_FILES", matches = "true")
     void updateExpectedFiles(TestCase testCase) throws IOException {
         try (OutputStream out = Files.newOutputStream(testCase.expected)) {
             writePrettyReport(testCase, out, testCase.builder, messageOrderer.originalOrder());
